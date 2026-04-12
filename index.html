@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quinn Admin v4.1</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--gold:#FFD700;--cyan:#00F5FF;--green:#00FF88;--red:#FF4757;--purple:#9B59B6;--bg0:#030712;--bg1:#080E1E;--border:rgba(255,255,255,.08);--text:#F0F4FF;--muted:rgba(255,255,255,.45);--r:14px}
+html,body{min-height:100%;background:var(--bg0);color:var(--text);font-family:'Cairo',sans-serif}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 50% at 10% 10%,rgba(0,245,255,.06) 0%,transparent 70%),radial-gradient(ellipse 50% 60% at 90% 20%,rgba(255,215,0,.05) 0%,transparent 70%),radial-gradient(ellipse 40% 40% at 80% 80%,rgba(155,89,182,.04) 0%,transparent 70%)}
+
+/* LOGIN */
+#login{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.lwrap{width:100%;max-width:400px;background:rgba(10,15,30,.97);border:1px solid rgba(255,215,0,.2);border-radius:22px;padding:34px 26px;position:relative;z-index:1}
+.lic{width:68px;height:68px;border-radius:50%;margin:0 auto 12px;background:radial-gradient(circle,rgba(255,215,0,.18),rgba(255,215,0,.04));border:2px solid rgba(255,215,0,.28);display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--gold)}
+.ltit{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;color:var(--gold);text-align:center;letter-spacing:2px}
+.lsub{font-size:11px;color:var(--muted);text-align:center;margin:4px 0 22px}
+.finp{width:100%;padding:11px 13px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text);font-size:14px;font-family:'Cairo',sans-serif;outline:none;margin-bottom:12px;transition:border .2s}
+.finp:focus{border-color:rgba(255,215,0,.4)}
+.finp::placeholder{color:var(--muted)}
+select.finp{cursor:pointer;appearance:none}
+textarea.finp{resize:vertical;min-height:80px}
+.fbtn{width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--gold),#FFA500);color:#000;font-size:14px;font-weight:900;font-family:'Cairo',sans-serif;cursor:pointer;transition:.2s}
+.fbtn:hover{box-shadow:0 4px 22px rgba(255,215,0,.28)}
+
+/* DASHBOARD */
+#dash{display:none;position:relative;z-index:1;min-height:100vh}
+#sb{width:230px;position:fixed;top:0;right:0;bottom:0;z-index:50;background:rgba(5,8,20,.97);backdrop-filter:blur(20px);border-left:1px solid var(--border);display:flex;flex-direction:column;transition:transform .3s}
+@media(max-width:780px){#sb{transform:translateX(100%)}#sb.mop{transform:translateX(0)}}
+.sbh{padding:16px 14px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px}
+.sblog{width:36px;height:36px;border-radius:10px;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.18);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--gold)}
+.sbt{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;color:var(--gold)}
+.sbsub{font-size:9px;color:var(--muted);margin-top:1px}
+.sbnav{padding:9px 6px;flex:1;overflow-y:auto}
+.sbsec{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;padding:7px 9px 3px}
+.sbi{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:1px;transition:.18s}
+.sbi:hover{background:rgba(255,255,255,.04);color:var(--text)}
+.sbi.on{background:rgba(255,215,0,.08);color:var(--gold);border:1px solid rgba(255,215,0,.12)}
+.sbi i{width:15px;text-align:center;font-size:13px}
+.sbfoot{padding:11px;border-top:1px solid var(--border)}
+.lout{width:100%;padding:9px;border-radius:10px;border:1px solid rgba(255,71,87,.22);background:rgba(255,71,87,.07);color:var(--red);font-size:12px;font-weight:700;font-family:'Cairo',sans-serif;cursor:pointer;transition:.18s;display:flex;align-items:center;justify-content:center;gap:7px}
+.lout:hover{background:rgba(255,71,87,.14)}
+#main{margin-right:230px;padding:20px;min-height:100vh;transition:margin .3s}
+@media(max-width:780px){#main{margin-right:0}}
+.topb{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:9px}
+.topt{font-size:19px;font-weight:900}
+.topsub{font-size:10px;color:var(--muted);margin-top:2px}
+.topr{display:flex;align-items:center;gap:8px}
+.btn-ref{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--text);font-size:11px;font-weight:700;font-family:'Cairo',sans-serif;cursor:pointer;transition:.18s}
+.btn-ref:hover{background:rgba(255,255,255,.08)}
+.mobt{display:none;width:33px;height:33px;border-radius:9px;background:rgba(255,255,255,.06);border:1px solid var(--border);align-items:center;justify-content:center;cursor:pointer;font-size:13px}
+@media(max-width:780px){.mobt{display:flex}}
+
+/* CARDS */
+.gc{background:rgba(255,255,255,.04);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--r);position:relative;overflow:hidden}
+.gc::before{content:'';position:absolute;inset:0;border-radius:var(--r);background:linear-gradient(135deg,rgba(255,255,255,.05) 0%,transparent 55%);pointer-events:none}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px;margin-bottom:20px}
+.scard{padding:16px}
+.sic{font-size:24px;display:block;margin-bottom:8px}
+.sv{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;color:var(--gold);margin-bottom:3px}
+.sl{font-size:11px;color:var(--muted)}
+.sec{padding:16px;margin-bottom:16px}
+.stit{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:800;margin-bottom:13px}
+.stit i{color:var(--gold)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:16px}
+@media(max-width:600px){.two{grid-template-columns:1fr}}
+
+/* BTNS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-radius:11px;border:none;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.18s;white-space:nowrap}
+.btn:active{transform:scale(.96)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),#FFA500);color:#000}
+.btn-green{background:rgba(0,255,136,.13);border:1px solid rgba(0,255,136,.22);color:var(--green)}
+.btn-red{background:rgba(255,71,87,.13);border:1px solid rgba(255,71,87,.22);color:var(--red)}
+.btn-cyan{background:rgba(0,245,255,.11);border:1px solid rgba(0,245,255,.2);color:var(--cyan)}
+.btn-ghost{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text)}
+.btn-full{width:100%;justify-content:center}
+.btn-sm{padding:5px 11px;font-size:11px;border-radius:8px;background:rgba(255,255,255,.07);border:1px solid var(--border);color:var(--text);cursor:pointer;font-family:'Cairo',sans-serif;font-weight:700}
+
+/* TABLE */
+.tblwrap{overflow-x:auto;border-radius:12px}
+.tbl{width:100%;border-collapse:collapse;min-width:580px}
+.tbl th{padding:10px 12px;text-align:right;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;background:rgba(255,255,255,.03);border-bottom:1px solid var(--border);white-space:nowrap}
+.tbl td{padding:10px 12px;font-size:12px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+.tbl tbody tr:hover{background:rgba(255,255,255,.02)}
+.tbl tbody tr:last-child td{border-bottom:none}
+.banned-row{background:rgba(255,71,87,.04)}
+.mono{font-family:monospace;font-size:11px;color:var(--muted)}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:16px;font-size:10px;font-weight:700}
+.badge-ok{background:rgba(0,255,136,.11);color:var(--green);border:1px solid rgba(0,255,136,.18)}
+.badge-ban{background:rgba(255,71,87,.11);color:var(--red);border:1px solid rgba(255,71,87,.18)}
+.badge-vip{background:rgba(255,215,0,.11);color:var(--gold);border:1px solid rgba(255,215,0,.18)}
+.badge-scam{background:rgba(255,71,87,.15);color:var(--red);border:1px solid rgba(255,71,87,.25)}
+.search-row{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.sinp{flex:1;min-width:140px;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text);font-size:12px;font-family:'Cairo',sans-serif;outline:none}
+.sinp:focus{border-color:rgba(255,215,0,.35)}
+.act-item{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.act-item:last-child{border-bottom:none}
+.act-dot{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.act-t{font-size:11px}
+.act-d{font-size:9px;color:var(--muted);margin-top:1px}
+.gold{color:var(--gold)}.cyan{color:var(--cyan)}.green{color:var(--green)}.red{color:var(--red)}.muted{color:var(--muted)}.small{font-size:11px}
+.loading{text-align:center;padding:24px;color:var(--muted);font-size:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin 1s linear infinite}
+/* Toast */
+#adm-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(18px);background:rgba(10,16,32,.97);border:1px solid var(--border);backdrop-filter:blur(20px);padding:9px 20px;border-radius:26px;z-index:1000;font-size:12px;font-weight:700;white-space:nowrap;opacity:0;transition:all .3s;pointer-events:none}
+#adm-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#adm-toast.ok{border-color:rgba(0,255,136,.25);color:var(--green)}
+#adm-toast.err{border-color:rgba(255,71,87,.25);color:var(--red)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="lwrap">
+    <div class="lic"><i class="fas fa-shield-halved"></i></div>
+    <div class="ltit">QUINN ADMIN</div>
+    <div class="lsub">لوحة تحكم v4.1.0 · 2026</div>
+    <form onsubmit="doLogin(event)">
+      <input type="password" class="finp" id="pass-inp" placeholder="كلمة مرور المسؤول" autocomplete="current-password">
+      <button type="submit" class="fbtn"><i class="fas fa-right-to-bracket"></i> دخول</button>
+    </form>
+    <div id="lerr" style="color:var(--red);font-size:12px;font-weight:700;text-align:center;min-height:18px;margin-top:8px"></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash">
+  <aside id="sb">
+    <div class="sbh"><div class="sblog"><i class="fas fa-coins"></i></div><div><div class="sbt">ADMIN</div><div class="sbsub">Quinn Bot 2026</div></div></div>
+    <nav class="sbnav">
+      <div class="sbsec">الرئيسية</div>
+      <div class="sbi on"  data-s="overview"><i class="fas fa-chart-pie"></i> نظرة عامة</div>
+      <div class="sbi"     data-s="users">   <i class="fas fa-users"></i> المستخدمون</div>
+      <div class="sbsec">الإدارة</div>
+      <div class="sbi"     data-s="collectibles"><i class="fas fa-gem"></i> المقتنيات</div>
+      <div class="sbi"     data-s="auctions">    <i class="fas fa-gavel"></i> المزادات</div>
+      <div class="sbi"     data-s="notif">        <i class="fas fa-bell"></i> الإشعارات</div>
+      <div class="sbi"     data-s="gold">         <i class="fas fa-coins"></i> سوق الذهب</div>
+      <div class="sbi"     data-s="tokens">       <i class="fas fa-paper-plane"></i> إرسال عملات</div>
+      <div class="sbi"     data-s="giftcodes">    <i class="fas fa-gift"></i> أكواد الهدايا</div>
+      <div class="sbsec">النظام</div>
+      <div class="sbi"     data-s="tap">          <i class="fas fa-hand-pointer"></i> إعدادات النقر</div>
+      <div class="sbi"     data-s="maintenance">  <i class="fas fa-wrench"></i> الصيانة</div>
+      <div class="sbi"     data-s="activity">     <i class="fas fa-timeline"></i> سجل النشاط</div>
+    </nav>
+    <div class="sbfoot"><button class="lout" onclick="location.reload()"><i class="fas fa-right-from-bracket"></i> خروج</button></div>
+  </aside>
+
+  <main id="main">
+    <div class="topb">
+      <div><div class="topt" id="pg-t">نظرة عامة</div><div class="topsub" id="pg-s">—</div></div>
+      <div class="topr">
+        <button class="btn-ref" onclick="loadSec(_cs)"><i class="fas fa-rotate-right"></i> تحديث</button>
+        <div class="mobt" onclick="$('sb').classList.toggle('mop')"><i class="fas fa-bars"></i></div>
+      </div>
+    </div>
+    <div id="adm-cnt"><div class="loading"><i class="fas fa-spinner spin"></i> تحميل...</div></div>
+  </main>
+</div>
+
+<div id="adm-toast"></div>
+
+<script>
+'use strict';
+firebase.initializeApp({apiKey:'AIzaSyDYyxW9P-_DlOEqK6FCQqqBWo5UFxGnshY',authDomain:'quinnbot-9f797.firebaseapp.com',databaseURL:'https://quinnbot-9f797-default-rtdb.firebaseio.com',projectId:'quinnbot-9f797',storageBucket:'quinnbot-9f797.firebasestorage.app',messagingSenderId:'592205334333',appId:'1:592205334333:web:9f8a3b6ec7e7fee81fa754'});
+const DB=firebase.firestore();
+const PASS='T9@xQ#4mL!2vZ$7pR';
+let _authed=false,_users=[],_cs='overview';
+const $=id=>document.getElementById(id);
+const fmt=n=>{n=Math.floor(n||0);if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return n.toLocaleString()};
+
+function doLogin(e){e.preventDefault();const p=$('pass-inp').value;if(p===PASS){_authed=true;$('login').style.display='none';$('dash').style.display='block';bindSB();loadSec('overview');}else{$('lerr').textContent='❌ كلمة مرور خاطئة';$('pass-inp').value='';setTimeout(()=>$('lerr').textContent='',3000);}}
+function bindSB(){document.querySelectorAll('.sbi').forEach(el=>{el.addEventListener('click',()=>{document.querySelectorAll('.sbi').forEach(i=>i.classList.remove('on'));el.classList.add('on');loadSec(el.dataset.s);$('sb').classList.remove('mop');});});}
+const TITLES={overview:'نظرة عامة',users:'المستخدمون',collectibles:'إدارة المقتنيات',auctions:'المزادات',notif:'الإشعارات',gold:'سوق الذهب',tokens:'إرسال عملات',giftcodes:'أكواد الهدايا',tap:'إعدادات النقر',maintenance:'وضع الصيانة',activity:'سجل النشاط'};
+function loadSec(s){_cs=s;$('pg-t').textContent=TITLES[s]||s;$('pg-s').textContent='آخر تحديث: '+new Date().toLocaleTimeString('ar-SA');const c=$('adm-cnt');c.innerHTML='<div class="loading"><i class="fas fa-spinner spin"></i> تحميل...</div>';switch(s){case'overview':renderOverview(c);break;case'users':renderUsers(c);break;case'collectibles':renderCollectibles(c);break;case'auctions':renderAuctions(c);break;case'notif':renderNotif(c);break;case'gold':renderGold(c);break;case'tokens':renderTokens(c);break;case'giftcodes':renderGiftCodes(c);break;case'tap':renderTap(c);break;case'maintenance':renderMaintenance(c);break;case'activity':renderActivity(c);break;}}
+function toast(msg,type='ok'){const t=$('adm-toast');t.textContent=msg;t.className=type;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
+async function logAct(type,meta={}){try{await DB.collection('adminActivity').add({type,...meta,timestamp:firebase.firestore.FieldValue.serverTimestamp()});}catch(_){}}
+async function loadUsers(){if(_users.length)return _users;try{const snap=await DB.collection('users').orderBy('totalTokens','desc').limit(100).get();_users=snap.docs.map(d=>({id:d.id,...d.data()}));}catch(e){console.error(e)}return _users;}
+
+/* ── OVERVIEW ── */
+async function renderOverview(c){
+  const users=await loadUsers();
+  let total=0,tokens=0,gold=0,clicks=0,banned=0,vaulted=0;
+  users.forEach(u=>{total++;tokens+=(u.totalTokens||0);gold+=(u.goldGrams||0);clicks+=(u.clicks||0);if(u.banned)banned++;vaulted+=(u.vaultStaked||0);});
+  c.innerHTML=`
+    <div class="sgrid">
+      <div class="gc scard"><span class="sic" style="color:var(--cyan)"><i class="fas fa-users"></i></span><div class="sv">${fmt(total)}</div><div class="sl">المستخدمون</div></div>
+      <div class="gc scard"><span class="sic" style="color:var(--gold)"><i class="fas fa-coins"></i></span><div class="sv">${fmt(tokens)}</div><div class="sl">Quinn المُصدرة</div></div>
+      <div class="gc scard"><span class="sic" style="color:var(--gold)"><i class="fas fa-mountain-sun"></i></span><div class="sv">${gold.toFixed(2)}g</div><div class="sl">الذهب المتداول</div></div>
+      <div class="gc scard"><span class="sic" style="color:var(--purple)"><i class="fas fa-vault"></i></span><div class="sv">${fmt(vaulted)}</div><div class="sl">في Vault</div></div>
+      <div class="gc scard"><span class="sic" style="color:var(--red)"><i class="fas fa-ban"></i></span><div class="sv" style="color:var(--red)">${banned}</div><div class="sl">محظورون</div></div>
+      <div class="gc scard"><span class="sic" style="color:var(--green)"><i class="fas fa-circle-check"></i></span><div class="sv" style="color:var(--green)">${total-banned}</div><div class="sl">نشطون</div></div>
+    </div>
+    <div class="two">
+      <div class="gc sec"><div class="stit"><i class="fas fa-trophy"></i> أفضل 5 لاعبين</div>${users.slice(0,5).map((u,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)"><div style="width:20px;font-size:11px;font-weight:900;color:${['var(--gold)','#C0C0C0','#CD7F32','var(--muted)','var(--muted)'][i]}">#${i+1}</div><div style="width:26px;height:26px;border-radius:50%;background:rgba(255,215,0,.1);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900">${(u.name||'?').charAt(0)}</div><div style="flex:1;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.name||'—'}</div><div class="gold" style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:800">${fmt(u.totalTokens||0)}</div></div>`).join('')}</div>
+      <div class="gc sec"><div class="stit"><i class="fas fa-bolt"></i> إجراءات سريعة</div><div style="display:flex;flex-direction:column;gap:9px"><button class="btn btn-green btn-full" onclick="loadSec('notif')"><i class="fas fa-bell"></i> إرسال إشعار</button><button class="btn btn-cyan btn-full" onclick="loadSec('gold')"><i class="fas fa-coins"></i> تحديث سعر الذهب</button><button class="btn btn-gold btn-full" onclick="loadSec('tokens')"><i class="fas fa-paper-plane"></i> إرسال عملات</button><button class="btn btn-ghost btn-full" onclick="loadSec('collectibles')"><i class="fas fa-gem"></i> إضافة مقتنى</button></div></div>
+    </div>`;
+}
+
+/* ── USERS ── */
+async function renderUsers(c){
+  await loadUsers();
+  c.innerHTML=`<div class="gc sec"><div class="stit"><i class="fas fa-users"></i> المستخدمون (${_users.length})</div>
+    <div class="search-row"><input type="text" class="sinp" id="usearch" placeholder="بحث..."><button class="btn btn-ghost" onclick="_users=[];loadUsers().then(()=>renderUTable(_users))"><i class="fas fa-rotate-right"></i></button></div>
+    <div class="tblwrap"><table class="tbl"><thead><tr><th>#</th><th>المستخدم</th><th>الرصيد</th><th>الحالة</th><th>الشارة</th><th>التجميد</th><th>الإجراءات</th></tr></thead><tbody id="ubody"></tbody></table></div>
+  </div>`;
+  renderUTable(_users);
+  $('usearch')?.addEventListener('input',e=>{const q=e.target.value.toLowerCase();renderUTable(q?_users.filter(u=>(u.name||'').toLowerCase().includes(q)||(u.id||'').includes(q)):_users);});
+}
+function renderUTable(list){
+  const b=$('ubody');if(!b)return;
+  if(!list.length){b.innerHTML=`<tr><td colspan="7" class="loading">لا توجد نتائج</td></tr>`;return;}
+  b.innerHTML=list.map((u,i)=>{
+    const frozen=u.frozenAssets||{};
+    const frozenList=Object.entries(frozen).filter(([,v])=>v).map(([k])=>k).join(',');
+    return`<tr class="${u.banned?'banned-row':''}">
+      <td class="muted small">${i+1}</td>
+      <td><div style="display:flex;align-items:center;gap:7px">
+        <div style="width:26px;height:26px;border-radius:50%;background:rgba(255,215,0,.1);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;flex-shrink:0">${(u.name||'?').charAt(0)}</div>
+        <div><div style="font-size:11px;font-weight:700">${u.name||'—'}</div><div class="muted small">${String(u.id).slice(0,12)}…</div></div>
+      </div></td>
+      <td class="gold" style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700">${fmt(u.totalTokens||0)}</td>
+      <td><span class="badge ${u.banned?'badge-ban':'badge-ok'}">${u.banned?'محظور':'نشط'}</span></td>
+      <td>${u.badge?`<span class="badge ${u.badge==='vip'?'badge-vip':'badge-scam'}">${u.badge==='vip'?'⭐ VIP':'⚠️ محتال'}</span>`:'<span class="muted small">—</span>'}</td>
+      <td><span class="muted small">${frozenList||'—'}</span></td>
+      <td><div style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn-sm" style="color:var(--cyan);border-color:rgba(0,245,255,.2)" onclick="promptSend('${u.id}','${(u.name||'').replace(/'/g,'')}')"><i class="fas fa-paper-plane"></i></button>
+        <button class="btn-sm" style="${u.banned?'color:var(--green)':'color:var(--red)'}" onclick="toggleBan('${u.id}',${!!u.banned})"><i class="fas ${u.banned?'fa-lock-open':'fa-ban'}"></i></button>
+        <button class="btn-sm" style="color:var(--gold)" onclick="grantBadge('${u.id}','vip')"><i class="fas fa-star"></i></button>
+        <button class="btn-sm" style="color:var(--red)" onclick="grantBadge('${u.id}','scammer')"><i class="fas fa-triangle-exclamation"></i></button>
+        <button class="btn-sm" onclick="grantBadge('${u.id}',null)"><i class="fas fa-xmark"></i></button>
+        <button class="btn-sm" style="color:var(--purple)" onclick="openFreezePanel('${u.id}')"><i class="fas fa-snowflake"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+async function promptSend(uid,name){const a=prompt(`كم Quinn تريد إرسال لـ ${name}?`);const amt=parseInt(a);if(!amt||amt<=0)return;try{await DB.collection('users').doc(uid).update({tokens:firebase.firestore.FieldValue.increment(amt),totalTokens:firebase.firestore.FieldValue.increment(amt)});await logAct('send_tokens',{uid,amount:amt});toast(`✅ أُرسل ${fmt(amt)} Quinn`);const u=_users.find(u=>u.id===uid);if(u){u.tokens=(u.tokens||0)+amt;u.totalTokens=(u.totalTokens||0)+amt;}renderUTable(_users);}catch(e){toast('❌ '+e.message,'err');}}
+async function toggleBan(uid,isBanned){if(!confirm(isBanned?'فك حظر؟':'حظر؟'))return;try{await DB.collection('users').doc(uid).update({banned:!isBanned});await logAct('ban',{uid,action:isBanned?'unban':'ban'});const u=_users.find(u=>u.id===uid);if(u)u.banned=!isBanned;renderUTable(_users);toast(isBanned?'✅ تم فك الحظر':'✅ تم الحظر');}catch(e){toast('❌ '+e.message,'err');}}
+async function grantBadge(uid,badge){try{await DB.collection('users').doc(uid).update({badge:badge||firebase.firestore.FieldValue.delete()});await logAct('badge',{uid,badge});const u=_users.find(u=>u.id===uid);if(u)u.badge=badge;renderUTable(_users);toast('✅ تم تحديث الشارة');}catch(e){toast('❌ '+e.message,'err');}}
+async function openFreezePanel(uid){
+  const u=_users.find(u=>u.id===uid);if(!u)return;
+  const fa=u.frozenAssets||{tokens:false,gold:false,vault:false,collectibles:false};
+  const types=['tokens','gold','vault','collectibles'];
+  const modal=document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML=`<div style="background:rgba(8,14,32,.97);border:1px solid rgba(155,89,182,.3);border-radius:18px;padding:20px;width:100%;max-width:340px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:14px;font-weight:800">تجميد أصول ${u.name}<button onclick="this.closest('[style]').remove()" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:16px">✕</button></div>
+    ${types.map(t=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)">
+      <span style="font-size:12px;font-weight:700">${{tokens:'القيم',gold:'الذهب',vault:'Vault',collectibles:'المقتنيات'}[t]}</span>
+      <button class="btn-sm" style="${fa[t]?'color:var(--green)':'color:var(--red)'}" onclick="toggleFreeze('${uid}','${t}',${!!fa[t]},this)">
+        <i class="fas ${fa[t]?'fa-lock-open':'fa-snowflake'}"></i> ${fa[t]?'فك':'تجميد'}
+      </button>
+    </div>`).join('')}
+  </div>`;
+  document.body.appendChild(modal);
+}
+async function toggleFreeze(uid,asset,isFrozen,btn){
+  try{
+    const update={};update[`frozenAssets.${asset}`]=!isFrozen;
+    await DB.collection('users').doc(uid).update(update);
+    await logAct('freeze',{uid,asset,action:isFrozen?'unfreeze':'freeze'});
+    const u=_users.find(u=>u.id===uid);if(u){if(!u.frozenAssets)u.frozenAssets={};u.frozenAssets[asset]=!isFrozen;}
+    btn.style.color=!isFrozen?'var(--green)':'var(--red)';
+    btn.innerHTML=`<i class="fas ${!isFrozen?'fa-lock-open':'fa-snowflake'}"></i> ${!isFrozen?'فك':'تجميد'}`;
+    toast(`✅ ${isFrozen?'تم فك تجميد':'تم تجميد'} ${asset}`);
+  }catch(e){toast('❌ '+e.message,'err');}
+}
+window.promptSend=promptSend;window.toggleBan=toggleBan;window.grantBadge=grantBadge;window.openFreezePanel=openFreezePanel;window.toggleFreeze=toggleFreeze;
+
+/* ── COLLECTIBLES ── */
+async function renderCollectibles(c){
+  c.innerHTML=`
+    <div class="gc sec mb12">
+      <div class="stit"><i class="fas fa-plus"></i> إضافة مقتنى جديد</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <input class="finp" id="c-name" placeholder="اسم المقتنى">
+        <input class="finp" id="c-img" placeholder="رابط الصورة (URL)">
+        <input class="finp" id="c-price" type="number" placeholder="السعر (Quinn)" min="1">
+        <input class="finp" id="c-qty" type="number" placeholder="الكمية" min="1">
+      </div>
+      <button class="btn btn-gold btn-full" onclick="addCollectible()"><i class="fas fa-plus"></i> إضافة</button>
+    </div>
+    <div class="gc sec"><div class="stit"><i class="fas fa-gem"></i> المقتنيات الحالية</div>
+      <div class="tblwrap"><table class="tbl"><thead><tr><th>الاسم</th><th>السعر</th><th>الكمية</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody id="coll-tbody"><tr><td colspan="5" class="loading"><i class="fas fa-spinner spin"></i></td></tr></tbody></table></div>
+    </div>`;
+  loadCollectiblesTable();
+}
+async function loadCollectiblesTable(){
+  const b=$('coll-tbody');if(!b)return;
+  try{
+    const snap=await DB.collection('collectibles').orderBy('createdAt','desc').get();
+    if(snap.empty){b.innerHTML='<tr><td colspan="5" class="loading muted">لا توجد مقتنيات</td></tr>';return;}
+    b.innerHTML=snap.docs.map(d=>{const it={id:d.id,...d.data()};return`<tr>
+      <td><div style="display:flex;align-items:center;gap:7px">${it.imageUrl?`<img src="${it.imageUrl}" style="width:30px;height:30px;border-radius:7px;object-fit:cover" onerror="this.style.display='none'">`:''}${it.name||'—'}</div></td>
+      <td class="gold">${fmt(it.price||0)}</td><td>${it.quantity||0}</td>
+      <td><span class="badge ${it.visible?'badge-ok':''}" style="${!it.visible?'background:rgba(255,255,255,.06);color:var(--muted);border:1px solid var(--border)':''}">${it.visible?'مرئي':'مخفي'}</span></td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn-sm" onclick="editColl('${it.id}','price')"><i class="fas fa-tag"></i></button>
+        <button class="btn-sm" onclick="editColl('${it.id}','quantity')"><i class="fas fa-plus-minus"></i></button>
+        <button class="btn-sm ${it.visible?'':'gold'}" onclick="toggleVisible('${it.id}',${!!it.visible})"><i class="fas ${it.visible?'fa-eye-slash':'fa-eye'}"></i></button>
+        <button class="btn-sm" style="color:var(--red)" onclick="delColl('${it.id}','${(it.name||'').replace(/'/g,'')}')"><i class="fas fa-trash"></i></button>
+      </div></td>
+    </tr>`;}).join('');
+  }catch(e){if(b)b.innerHTML=`<tr><td colspan="5" class="loading red">${e.message}</td></tr>`;}
+}
+async function addCollectible(){
+  const name=$('c-name')?.value?.trim(),img=$('c-img')?.value?.trim(),price=parseInt($('c-price')?.value||'0'),qty=parseInt($('c-qty')?.value||'0');
+  if(!name||!price||!qty){toast('أدخل جميع البيانات','err');return;}
+  try{
+    await DB.collection('collectibles').add({name,imageUrl:img||'',price,quantity:qty,visible:true,createdBy:'admin',createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+    await logAct('add_collectible',{name,price,qty});
+    ['c-name','c-img','c-price','c-qty'].forEach(id=>{const el=$(id);if(el)el.value='';});
+    loadCollectiblesTable();toast('✅ تم إضافة المقتنى');
+  }catch(e){toast('❌ '+e.message,'err');}
+}
+async function editColl(id,field){
+  const val=prompt(`القيمة الجديدة لـ ${field}:`);const n=parseInt(val);if(!n||n<0)return;
+  try{await DB.collection('collectibles').doc(id).update({[field]:n,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});loadCollectiblesTable();toast('✅ تم التحديث');}
+  catch(e){toast('❌ '+e.message,'err');}
+}
+async function toggleVisible(id,isVisible){
+  try{await DB.collection('collectibles').doc(id).update({visible:!isVisible,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});await logAct('toggle_visible',{id,visible:!isVisible});loadCollectiblesTable();toast('✅ تم تبديل الظهور');}
+  catch(e){toast('❌ '+e.message,'err');}
+}
+async function delColl(id,name){if(!confirm(`حذف "${name}" نهائياً؟`))return;try{await DB.collection('collectibles').doc(id).delete();await logAct('delete_collectible',{id,name});loadCollectiblesTable();toast('✅ تم الحذف');}catch(e){toast('❌ '+e.message,'err');}}
+window.addCollectible=addCollectible;window.editColl=editColl;window.toggleVisible=toggleVisible;window.delColl=delColl;
+
+/* ── AUCTIONS ── */
+async function renderAuctions(c){
+  c.innerHTML='<div class="gc sec"><div class="stit"><i class="fas fa-gavel"></i> المزادات النشطة</div><div class="tblwrap"><table class="tbl"><thead><tr><th>المقتنى</th><th>المزايدة الحالية</th><th>ينتهي</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody id="auc-tbody"><tr><td colspan="5" class="loading"><i class="fas fa-spinner spin"></i></td></tr></tbody></table></div></div>';
+  try{
+    const snap=await DB.collection('auctions').where('status','==','active').orderBy('endTime','asc').get();
+    const b=$('auc-tbody');if(!b)return;
+    if(snap.empty){b.innerHTML='<tr><td colspan="5" class="loading muted">لا توجد مزادات نشطة</td></tr>';return;}
+    b.innerHTML=snap.docs.map(d=>{const a={id:d.id,...d.data()};const end=a.endTime?.toDate?.()?.toLocaleString?.('ar-SA')||'—';return`<tr><td>${a.name||'—'}</td><td class="gold">${fmt(a.currentBid||0)}</td><td class="muted small">${end}</td><td><span class="badge badge-ok">نشط</span></td><td><button class="btn-sm" style="color:var(--red)" onclick="cancelAuction('${a.id}')"><i class="fas fa-ban"></i> إلغاء</button></td></tr>`;}).join('');
+  }catch(e){const b=$('auc-tbody');if(b)b.innerHTML=`<tr><td colspan="5" class="loading red">${e.message}</td></tr>`;}
+
+  // Auction settings
+  const snap=await DB.collection('config').doc('auctionSettings').get().catch(()=>null);
+  const cfg=snap?.exists?snap.data():{auctionMinBid:10,auctionMaxBid:999999};
+  c.innerHTML+=`<div class="gc sec"><div class="stit"><i class="fas fa-sliders"></i> إعدادات المزاد</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div><label class="muted small" style="display:block;margin-bottom:5px">الحد الأدنى للمزايدة</label><input class="finp" id="auc-min" type="number" value="${cfg.auctionMinBid||10}"></div>
+      <div><label class="muted small" style="display:block;margin-bottom:5px">الحد الأقصى للمزايدة</label><input class="finp" id="auc-max" type="number" value="${cfg.auctionMaxBid||999999}"></div>
+    </div>
+    <button class="btn btn-gold btn-full" onclick="saveAucSettings()"><i class="fas fa-floppy-disk"></i> حفظ إعدادات المزاد</button>
+  </div>`;
+}
+async function cancelAuction(id){if(!confirm('إلغاء هذا المزاد؟'))return;try{await DB.collection('auctions').doc(id).update({status:'cancelled'});await logAct('cancel_auction',{id});loadSec('auctions');toast('✅ تم إلغاء المزاد');}catch(e){toast('❌ '+e.message,'err');}}
+async function saveAucSettings(){const min=parseInt($('auc-min')?.value||'10');const max=parseInt($('auc-max')?.value||'999999');if(!min||!max){toast('قيم غير صحيحة','err');return;}try{await DB.collection('config').doc('auctionSettings').set({auctionMinBid:min,auctionMaxBid:max},{merge:true});await logAct('update_auction_settings',{min,max});toast('✅ تم حفظ الإعدادات');}catch(e){toast('❌ '+e.message,'err');}}
+window.cancelAuction=cancelAuction;window.saveAucSettings=saveAucSettings;
+
+/* ── NOTIF ── */
+function renderNotif(c){
+  c.innerHTML=`
+    <div class="gc sec mb12">
+      <div class="stit"><i class="fas fa-plus"></i> إرسال إشعار جديد</div>
+      <textarea class="finp" id="ntxt" placeholder="نص الإشعار..." rows="3" style="margin-bottom:10px"></textarea>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px;font-size:12px"><input type="checkbox" id="npinned" style="cursor:pointer"><label for="npinned">تثبيت الإشعار</label></div>
+      </div>
+      <button class="btn btn-gold btn-full" onclick="sendNotif()"><i class="fas fa-paper-plane"></i> إرسال للجميع</button>
+    </div>
+    <div class="gc sec"><div class="stit"><i class="fas fa-history"></i> الإشعارات الأخيرة</div><div id="nlist"><div class="loading"><i class="fas fa-spinner spin"></i></div></div></div>`;
+  loadNotifList();
+}
+async function sendNotif(){const msg=$('ntxt')?.value?.trim();const pinned=$('npinned')?.checked||false;if(!msg){toast('أدخل نص الإشعار','err');return;}try{await DB.collection('notifications').add({message:msg,pinned,deleted:false,timestamp:firebase.firestore.FieldValue.serverTimestamp()});$('ntxt').value='';if($('npinned'))$('npinned').checked=false;toast('✅ تم إرسال الإشعار');await logAct('notification',{message:msg,pinned});loadNotifList();}catch(e){toast('❌ '+e.message,'err');}}
+async function loadNotifList(){const el=$('nlist');if(!el)return;try{const snap=await DB.collection('notifications').orderBy('timestamp','desc').limit(15).get();if(snap.empty){el.innerHTML='<div class="loading muted">لا توجد إشعارات</div>';return;}el.innerHTML=snap.docs.map(d=>{const data=d.data();const t=data.timestamp?.toDate?.()?.toLocaleString?.('ar-SA')||'—';return`<div class="act-item"><div class="act-dot" style="background:${data.deleted?'var(--red)':data.pinned?'var(--gold)':'var(--cyan)'}"></div><div style="flex:1"><div class="act-t">${data.message}${data.pinned?' 📌':''}</div><div class="act-d">${t} ${data.deleted?'<span style="color:var(--red)">محذوف</span>':''}</div></div><button class="btn-sm" style="color:var(--red)" onclick="deleteNotif('${d.id}')"><i class="fas fa-trash"></i></button></div>`;}).join('');}catch(e){if(el)el.innerHTML=`<div class="loading red">${e.message}</div>`;}}
+async function deleteNotif(id){try{await DB.collection('notifications').doc(id).update({deleted:true});await logAct('delete_notif',{id});loadNotifList();toast('✅ تم حذف الإشعار');}catch(e){toast('❌ '+e.message,'err');}}
+window.sendNotif=sendNotif;window.deleteNotif=deleteNotif;
+
+/* ── GOLD ── */
+async function renderGold(c){
+  let price=100;try{const snap=await DB.collection('market').doc('global_gold').get();if(snap.exists)price=snap.data().price||100;}catch(_){}
+  c.innerHTML=`<div class="two">
+    <div class="gc sec">
+      <div class="stit"><i class="fas fa-coins"></i> السعر الحالي</div>
+      <div id="adm-gp" style="font-family:'Orbitron',sans-serif;font-size:28px;font-weight:900;color:var(--gold);margin-bottom:16px">$${price.toFixed(2)}</div>
+    </div>
+    <div class="gc sec">
+      <div class="stit"><i class="fas fa-pen-to-square"></i> تحديث السعر</div>
+      <input type="number" class="finp" id="np" value="${price.toFixed(2)}" step="0.01" min="1" style="margin-bottom:10px">
+      <input type="text" class="finp" id="nreason" placeholder="سبب التعديل" style="margin-bottom:10px">
+      <button class="btn btn-gold btn-full" onclick="updateGoldPrice()"><i class="fas fa-floppy-disk"></i> تحديث</button>
+    </div>
+  </div>`;
+}
+async function updateGoldPrice(){const p=parseFloat($('np')?.value);const reason=$('nreason')?.value||'—';if(!p||p<=0){toast('سعر غير صحيح','err');return;}try{await DB.collection('market').doc('global_gold').set({price:p,lastUpdate:firebase.firestore.FieldValue.serverTimestamp(),adminOverride:true},{merge:true});$('adm-gp').textContent=`$${p.toFixed(2)}`;await logAct('gold_price',{newPrice:p,reason});toast(`✅ تم تحديث السعر إلى $${p.toFixed(2)}`);}catch(e){toast('❌ '+e.message,'err');}}
+window.updateGoldPrice=updateGoldPrice;
+
+/* ── TOKENS ── */
+async function renderTokens(c){
+  await loadUsers();
+  c.innerHTML=`<div class="two">
+    <div class="gc sec">
+      <div class="stit"><i class="fas fa-paper-plane"></i> إرسال لمستخدم</div>
+      <input class="finp" id="tid" placeholder="معرف المستخدم (Telegram ID)" style="margin-bottom:10px">
+      <input class="finp" id="tamt" type="number" placeholder="الكمية" min="1" style="margin-bottom:10px">
+      <input class="finp" id="treason" placeholder="السبب" style="margin-bottom:10px">
+      <button class="btn btn-gold btn-full" onclick="doSendTokens()"><i class="fas fa-coins"></i> إرسال</button>
+    </div>
+    <div class="gc sec">
+      <div class="stit"><i class="fas fa-broadcast-tower"></i> إرسال جماعي</div>
+      <input class="finp" id="bamt" type="number" placeholder="الكمية لكل مستخدم" style="margin-bottom:10px">
+      <select class="finp" id="btarget" style="margin-bottom:10px"><option value="all">الجميع</option><option value="top10">أفضل 10</option><option value="top50">أفضل 50</option></select>
+      <button class="btn btn-cyan btn-full" onclick="doBulkSend()"><i class="fas fa-users"></i> إرسال للجميع</button>
+      <div class="muted small" style="margin-top:7px">⚠️ لا يمكن التراجع</div>
+    </div>
+  </div>`;
+}
+async function doSendTokens(){const uid=$('tid')?.value?.trim();const amt=parseInt($('tamt')?.value||'0');const reason=$('treason')?.value||'—';if(!uid||!amt||amt<=0){toast('أدخل البيانات','err');return;}try{await DB.collection('users').doc(uid).update({tokens:firebase.firestore.FieldValue.increment(amt),totalTokens:firebase.firestore.FieldValue.increment(amt)});await logAct('send_tokens',{uid,amount:amt,reason});toast(`✅ تم إرسال ${fmt(amt)} Quinn`);}catch(e){toast('❌ '+e.message,'err');}}
+async function doBulkSend(){const amt=parseInt($('bamt')?.value||'0');const target=$('btarget')?.value;if(!amt||amt<=0){toast('أدخل الكمية','err');return;}if(!confirm(`إرسال ${amt} لـ (${target})?`))return;let list=_users;if(target==='top10')list=_users.slice(0,10);if(target==='top50')list=_users.slice(0,50);let done=0;for(const u of list){try{await DB.collection('users').doc(u.id).update({tokens:firebase.firestore.FieldValue.increment(amt),totalTokens:firebase.firestore.FieldValue.increment(amt)});done++;}catch(_){}}await logAct('bulk_send',{amount:amt,target,count:done});toast(`✅ أُرسل ${fmt(amt)} لـ ${done} مستخدم`);}
+window.doSendTokens=doSendTokens;window.doBulkSend=doBulkSend;
+
+/* ── GIFT CODES ── */
+async function renderGiftCodes(c){
+  c.innerHTML=`
+    <div class="gc sec mb12">
+      <div class="stit"><i class="fas fa-plus"></i> إنشاء كود هدية</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <input class="finp" id="gc-code" placeholder="الكود (e.g. QUINN2026)" style="text-transform:uppercase">
+        <input class="finp" id="gc-amt" type="number" placeholder="الكمية (Quinn)" min="1">
+        <input class="finp" id="gc-uses" type="number" placeholder="عدد مرات الاستخدام" min="1" value="1">
+      </div>
+      <button class="btn btn-gold btn-full" onclick="createGiftCode()"><i class="fas fa-plus"></i> إنشاء</button>
+    </div>
+    <div class="gc sec"><div class="stit"><i class="fas fa-gift"></i> الأكواد الحالية</div>
+      <div class="tblwrap"><table class="tbl"><thead><tr><th>الكود</th><th>الكمية</th><th>المستخدم</th><th>الحد</th><th>إجراء</th></tr></thead><tbody id="gc-tbody"><tr><td colspan="5" class="loading"><i class="fas fa-spinner spin"></i></td></tr></tbody></table></div>
+    </div>`;
+  loadGiftCodes();
+}
+async function loadGiftCodes(){
+  const b=$('gc-tbody');if(!b)return;
+  try{const snap=await DB.collection('giftCodes').orderBy('createdAt','desc').limit(30).get();if(snap.empty){b.innerHTML='<tr><td colspan="5" class="loading muted">لا توجد أكواد</td></tr>';return;}b.innerHTML=snap.docs.map(d=>{const g=d.data();return`<tr><td class="mono">${g.code}</td><td class="gold">${fmt(g.amount||0)}</td><td>${g.usedCount||0}</td><td>${g.maxUses||1}</td><td><button class="btn-sm" style="color:var(--red)" onclick="deleteGiftCode('${d.id}')"><i class="fas fa-trash"></i></button></td></tr>`;}).join('');}catch(e){if(b)b.innerHTML=`<tr><td colspan="5" class="loading red">${e.message}</td></tr>`;}
+}
+async function createGiftCode(){const code=($('gc-code')?.value||'').trim().toUpperCase();const amt=parseInt($('gc-amt')?.value||'0');const uses=parseInt($('gc-uses')?.value||'1');if(!code||!amt||!uses){toast('أدخل جميع البيانات','err');return;}try{await DB.collection('giftCodes').add({code,amount:amt,maxUses:uses,usedCount:0,createdBy:'admin',createdAt:firebase.firestore.FieldValue.serverTimestamp()});['gc-code','gc-amt','gc-uses'].forEach(id=>{const el=$(id);if(el)el.value='';});loadGiftCodes();await logAct('create_gift_code',{code,amount:amt,maxUses:uses});toast('✅ تم إنشاء الكود');}catch(e){toast('❌ '+e.message,'err');}}
+async function deleteGiftCode(id){if(!confirm('حذف هذا الكود؟'))return;try{await DB.collection('giftCodes').doc(id).delete();loadGiftCodes();toast('✅ تم الحذف');}catch(e){toast('❌ '+e.message,'err');}}
+window.createGiftCode=createGiftCode;window.deleteGiftCode=deleteGiftCode;
+
+/* ── TAP SETTINGS ── */
+async function renderTap(c){
+  let tapValue=1,tapEnabled=true;
+  try{const snap=await DB.collection('config').doc('tapSettings').get();if(snap.exists){tapValue=snap.data().tapValue||1;tapEnabled=snap.data().tapEnabled!==false;}}catch(_){}
+  c.innerHTML=`<div class="gc sec">
+    <div class="stit"><i class="fas fa-hand-pointer"></i> إعدادات النقر</div>
+    <div class="two">
+      <div><label class="muted small" style="display:block;margin-bottom:5px">قيمة النقرة (مضاعف)</label><input class="finp" id="tap-val" type="number" value="${tapValue}" min="0.1" step="0.1"></div>
+      <div style="display:flex;flex-direction:column;justify-content:flex-end"><label class="muted small" style="display:block;margin-bottom:5px">تفعيل النقر</label><div style="display:flex;align-items:center;gap:9px;padding:11px 13px;background:rgba(255,255,255,.04);border-radius:11px;border:1px solid var(--border)"><span id="tap-status" style="font-weight:700;color:${tapEnabled?'var(--green)':'var(--red)'}">${tapEnabled?'مفعل':'معطل'}</span><div style="display:flex;gap:8px"><button class="btn btn-green btn-sm" onclick="setTap(true)"><i class="fas fa-play"></i> تفعيل</button><button class="btn btn-red btn-sm" onclick="setTap(false)"><i class="fas fa-stop"></i> تعطيل</button></div></div></div>
+    </div>
+    <button class="btn btn-gold btn-full" style="margin-top:12px" onclick="saveTapSettings()"><i class="fas fa-floppy-disk"></i> حفظ إعدادات النقر</button>
+    <div class="muted small" style="margin-top:8px">ملاحظة: قيمة النقرة = tapValue × مستوى اللاعب. القيمة الافتراضية 1.</div>
+  </div>`;
+}
+async function setTap(enabled){const s=$('tap-status');if(s){s.textContent=enabled?'مفعل':'معطل';s.style.color=enabled?'var(--green)':'var(--red)';}try{await DB.collection('config').doc('tapSettings').set({tapEnabled:enabled},{merge:true});await logAct('tap_toggle',{enabled});toast(`✅ تم ${enabled?'تفعيل':'تعطيل'} النقر`);}catch(e){toast('❌ '+e.message,'err');}}
+async function saveTapSettings(){const val=parseFloat($('tap-val')?.value||'1');if(!val||val<0){toast('قيمة غير صحيحة','err');return;}try{await DB.collection('config').doc('tapSettings').set({tapValue:val},{merge:true});await logAct('tap_value',{value:val});toast(`✅ قيمة النقرة: ${val}`);}catch(e){toast('❌ '+e.message,'err');}}
+window.setTap=setTap;window.saveTapSettings=saveTapSettings;
+
+/* ── MAINTENANCE ── */
+async function renderMaintenance(c){
+  let enabled=false,msg='التطبيق في وضع الصيانة، يرجى المحاولة لاحقاً';
+  try{const snap=await DB.collection('config').doc('maintenance').get();if(snap.exists){enabled=snap.data().enabled||false;msg=snap.data().message||msg;}}catch(_){}
+  c.innerHTML=`<div class="gc sec">
+    <div class="stit"><i class="fas fa-wrench"></i> وضع الصيانة</div>
+    <div style="padding:14px;border-radius:12px;border:1px solid ${enabled?'rgba(255,71,87,.3)':'rgba(0,255,136,.2)'};background:${enabled?'rgba(255,71,87,.08)':'rgba(0,255,136,.06)'};margin-bottom:14px;font-size:13px;font-weight:700;color:${enabled?'var(--red)':'var(--green)'};text-align:center">
+      الحالة: ${enabled?'⚠️ وضع الصيانة مفعّل':'✅ التطبيق يعمل بشكل طبيعي'}
+    </div>
+    <label class="muted small" style="display:block;margin-bottom:5px">رسالة الصيانة</label>
+    <textarea class="finp" id="maint-msg" rows="3" style="margin-bottom:12px">${msg}</textarea>
+    <div style="display:flex;gap:9px">
+      <button class="btn btn-red btn-full" onclick="setMaintenance(true)"><i class="fas fa-wrench"></i> تفعيل الصيانة</button>
+      <button class="btn btn-green btn-full" onclick="setMaintenance(false)"><i class="fas fa-circle-check"></i> إيقاف الصيانة</button>
+    </div>
+    <div class="muted small" style="margin-top:8px">⚠️ عند تفعيل الصيانة، لن يتمكن المستخدمون من الدخول للتطبيق.</div>
+  </div>`;
+}
+async function setMaintenance(enabled){const msg=$('maint-msg')?.value?.trim()||'التطبيق في وضع الصيانة';if(enabled&&!confirm('تفعيل وضع الصيانة؟'))return;try{await DB.collection('config').doc('maintenance').set({enabled,message:msg,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});await logAct('maintenance',{enabled,message:msg});loadSec('maintenance');toast(`✅ ${enabled?'تم تفعيل':'تم إيقاف'} وضع الصيانة`);}catch(e){toast('❌ '+e.message,'err');}}
+window.setMaintenance=setMaintenance;
+
+/* ── ACTIVITY ── */
+async function renderActivity(c){
+  c.innerHTML='<div class="gc sec"><div class="stit"><i class="fas fa-timeline"></i> سجل النشاط</div><div id="act-list"><div class="loading"><i class="fas fa-spinner spin"></i></div></div></div>';
+  try{
+    const snap=await DB.collection('adminActivity').orderBy('timestamp','desc').limit(50).get();
+    const el=$('act-list');if(!el)return;
+    if(snap.empty){el.innerHTML='<div class="loading muted">لا يوجد نشاط</div>';return;}
+    const labels={gold_price:'تحديث سعر الذهب',send_tokens:'إرسال عملات',bulk_send:'إرسال جماعي',ban:'حظر',freeze:'تجميد',badge:'شارة',notification:'إشعار',maintenance:'صيانة',add_collectible:'إضافة مقتنى',delete_collectible:'حذف مقتنى',toggle_visible:'تبديل ظهور',cancel_auction:'إلغاء مزاد',tap_toggle:'تبديل النقر',tap_value:'قيمة النقر',create_gift_code:'إنشاء كود',delete_notif:'حذف إشعار',update_auction_settings:'إعدادات مزاد'};
+    const cols={gold_price:'var(--gold)',send_tokens:'var(--cyan)',bulk_send:'var(--green)',ban:'var(--red)',freeze:'var(--purple)',badge:'var(--gold)',notification:'var(--gold)',maintenance:'var(--red)',add_collectible:'var(--cyan)',delete_collectible:'var(--red)',tap_toggle:'var(--green)',create_gift_code:'var(--gold)'};
+    el.innerHTML=snap.docs.map(d=>{const a=d.data();const t=a.timestamp?.toDate?.()?.toLocaleString?.('ar-SA')||'—';const extra=a.amount?` • ${fmt(a.amount)}`:a.newPrice?` • $${a.newPrice}`:a.uid?` • ${a.uid.slice(0,8)}…`:'';return`<div class="act-item"><div class="act-dot" style="background:${cols[a.type]||'var(--cyan)'}"></div><div><div class="act-t">${labels[a.type]||a.type}${extra}</div><div class="act-d">${t}</div></div></div>`;}).join('');
+  }catch(e){const el=$('act-list');if(el)el.innerHTML=`<div class="loading red">${e.message}</div>`;}
+}
+
+// Init market if not exists
+(async()=>{try{const snap=await DB.collection('market').doc('global_gold').get();if(!snap.exists)await DB.collection('market').doc('global_gold').set({price:100,volume:0,buyVolume:0,sellVolume:0,priceHistory:[100],lastUpdate:firebase.firestore.FieldValue.serverTimestamp()});}catch(_){}})();
+</script>
+</body>
+</html>
